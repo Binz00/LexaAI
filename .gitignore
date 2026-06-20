@@ -1,0 +1,39 @@
+# ── Python ─────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# ── Virtual Environment ───────────────────────────────────────────
+venv/
+.venv/
+env/
+.env
+
+# ── Data & Models (large files — do not commit) ──────────────────
+data/raw_pdfs/
+data/cuad/
+models/stage1_cuad/
+models/stage2_lexai/
+models/autoencoder.pt
+models/discriminator/
+embeddings/chromadb/
+
+# ── IDE ───────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# ── Jupyter ───────────────────────────────────────────────────────
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# ── OS ────────────────────────────────────────────────────────────
+Thumbs.db
+.DS_Store
