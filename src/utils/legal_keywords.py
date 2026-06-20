@@ -57,28 +57,93 @@ SKIP_FILES = [
 ]
 
 # Used for retrieval boosting and domain detection
+# Each list covers both formal legal terms AND the everyday language
+# that real users naturally write — crucial for domain detection without
+# forcing users to know legal vocabulary.
 DOMAIN_KEYWORDS = {
     "family_law": [
+        # Formal legal terms
         "marriage", "matrimonial", "inheritance", "spouse", "divorce",
-        "marriage registration", "consent", "minor", "widow", "child", 
-        "husband", "wife", "wedding", "alimony",
+        "marriage registration", "consent", "alimony", "affiliation",
+        # Natural language — relationships
+        "married", "marrying", "get married", "register marriage",
+        "husband", "wife", "wedding", "couple",
+        # Natural language — children & guardianship
+        "child", "minor", "custody", "adoption", "guardian",
+        "orphan", "parental", "children",
+        # Natural language — death & estates
+        "widow", "widower", "heir", "estate", "deceased", "dead",
+        "death", "passed away", "died", "funeral", "probate",
+        # Natural language — separation
+        "separation", "separated", "divorce petition", "annulment",
     ],
     "contract_law": [
+        # Formal legal terms
         "fraud", "notary", "deed", "immovable property", "will", "testament",
-        "witness", "writing", "agreement", "notarial",
+        "witness", "notarial", "frauds ordinance",
+        # Natural language — property transactions
+        "land", "property", "house", "sell land", "buy land", "purchase land",
+        "transfer land", "title deed", "land deed", "property sale",
+        # Natural language — agreements
+        "contract", "signed", "agreement", "written agreement",
+        "verbal agreement", "oral agreement", "document", "written",
+        # Natural language — housing & tenancy
+        "landlord", "tenant", "lease", "rent", "rental", "deposit",
+        "eviction", "renting", "rent agreement",
+        # Natural language — money/transactions
+        "loan", "borrow", "lend", "money owed", "debt",
     ],
     "business_law": [
+        # Formal legal terms
         "sale of goods", "buyer", "seller", "warranty", "delivery",
-        "merchantable", "lien", "price", "goods", "contract of sale",
+        "merchantable", "lien", "contract of sale",
+        # Natural language — consumer purchases
+        "shop", "bought", "purchased", "purchase", "product", "item",
+        "goods", "defective", "broken", "damaged", "faulty", "fault",
+        "refund", "replace", "replacement", "return", "receipt",
+        "consumer", "customer",
+        # Natural language — trade & commerce
+        "merchant", "store", "sell", "sold", "trade", "business",
+        "shop owner", "quality", "fit for purpose", "price",
+        "invoice", "payment", "online shopping",
+        # Natural language — after-purchase problems
+        "doesn't work", "stopped working", "broke", "malfunction",
+        "not fit", "not as described",
     ],
     "traffic_law": [
-        "motor traffic", "vehicle", "licence", "driving", "vehicle registration",
-        "insurance", "accident", "road", "speed", "traffic", "driver", "highway",
+        # Formal legal terms
+        "motor traffic", "vehicle registration", "commissioner of motor traffic",
+        # Natural language — vehicles
+        "vehicle", "car", "bus", "motorbike", "motorcycle", "truck",
+        "van", "lorry", "tuk tuk", "three wheeler",
+        # Natural language — driving
+        "licence", "driving", "drive", "driver", "driving licence",
+        "licence plate", "number plate", "registration plate",
+        # Natural language — incidents
+        "accident", "crash", "collision", "hit", "road", "highway",
+        "traffic", "speeding", "speed limit", "drunk driving",
+        # Natural language — regulations
+        "insurance", "road tax", "permit", "parking", "lane",
+        "traffic light", "road rules", "fine", "traffic fine",
+        # Natural language — inspection
+        "safety inspection", "fitness", "roadworthy",
     ],
     "criminal_law": [
-        "penal", "offence", "criminal", "punishment", "imprisonment",
-        "theft", "assault", "murder", "forgery", "cheating",
-        "culpable homicide", "grievous hurt", "jail",
+        # Formal legal terms
+        "penal", "offence", "culpable homicide", "grievous hurt", "forgery",
+        "cheating", "abetment",
+        # Natural language — crimes
+        "criminal", "crime", "theft", "stolen", "steal", "robbed",
+        "robbery", "assault", "murder", "kill", "killed", "attack",
+        "attacked", "hurt", "harmed", "violence", "rape",
+        # Natural language — process
+        "arrested", "arrest", "police", "complaint", "FIR", "court",
+        "suspect", "accused", "charge", "charged", "guilty",
+        # Natural language — punishment
+        "punishment", "imprisonment", "jail", "prison", "sentence",
+        "fine", "penalty",
+        # Natural language — victim reporting
+        "victim", "perpetrator", "report to police", "file complaint",
     ],
 }
 
