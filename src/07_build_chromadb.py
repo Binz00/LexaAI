@@ -19,6 +19,10 @@ import numpy as np
 import chromadb
 from tqdm import tqdm
 
+from src.utils.logger import get_logger
+
+logger = get_logger(__name__)
+
 from src.utils.constants import (
     SECTIONS_JSON, SECTIONS_DIR, CHROMA_PERSIST_DIR,
     CHROMA_COLLECTION_STATUTES, RETRIEVAL_TOP_K,
@@ -26,27 +30,27 @@ from src.utils.constants import (
 
 
 def main():
-    print("🔨 LexaAI ChromaDB Builder")
-    print("=" * 60)
+    logger.info("🔨 LexaAI ChromaDB Builder")
 
     # Load sections
     if not SECTIONS_JSON.exists():
-        print(f"❌ Run src/01_parse_pdfs.py first"); sys.exit(1)
+        logger.error(f"❌ Run src/01_parse_pdfs.py first")
+        sys.exit(1)
     with open(SECTIONS_JSON, "r", encoding="utf-8") as f:
         sections = json.load(f)
-    print(f"📄 Loaded {len(sections)} sections")
+    logger.info(f"📄 Loaded {len(sections)} sections")
 
     # Load embeddings (prefer latent, fall back to raw)
     latent_path = SECTIONS_DIR / "latent_embeddings.npy"
     raw_path = SECTIONS_DIR / "section_embeddings.npy"
     if latent_path.exists():
         embeddings = np.load(str(latent_path))
-        print(f"📊 Using latent embeddings: {embeddings.shape}")
+        logger.info(f"📊 Using latent embeddings: {embeddings.shape} (Norm sample: {np.linalg.norm(embeddings[0]):.4f})")
     elif raw_path.exists():
         embeddings = np.load(str(raw_path))
-        print(f"📊 Using raw embeddings: {embeddings.shape}")
+        logger.info(f"📊 Using raw embeddings: {embeddings.shape} (Norm sample: {np.linalg.norm(embeddings[0]):.4f})")
     else:
-        print("❌ No embeddings found. Run src/03_build_embeddings.py first")
+        logger.error("❌ No embeddings found. Run src/03_build_embeddings.py first")
         sys.exit(1)
 
     assert len(sections) == len(embeddings), \
@@ -59,7 +63,7 @@ def main():
     # Delete existing collection if it exists
     try:
         client.delete_collection(CHROMA_COLLECTION_STATUTES)
-        print("  🗑️  Deleted existing collection")
+        logger.info("🗑️ Deleted existing collection")
     except Exception:
         pass
 
@@ -67,7 +71,7 @@ def main():
         name=CHROMA_COLLECTION_STATUTES,
         metadata={"hnsw:space": "cosine"},
     )
-    print(f"  📦 Created collection: {CHROMA_COLLECTION_STATUTES}")
+    logger.info(f"📦 Created collection: {CHROMA_COLLECTION_STATUTES} with cosine similarity")
 
     # Deduplicate IDs globally
     seen_ids = set()
@@ -90,7 +94,7 @@ def main():
         dedup_indices.append(idx)
 
     if dup_count:
-        print(f"  ⚠️  Resolved {dup_count} duplicate IDs")
+        logger.warning(f"⚠️ Resolved {dup_count} duplicate IDs")
 
     # Add sections in batches
     batch_size = 100
@@ -123,20 +127,23 @@ def main():
 
     # Verify
     count = collection.count()
-    print(f"\n✅ ChromaDB populated with {count} entries")
+    logger.info(f"✅ ChromaDB populated with {count} entries")
 
     # Test query
-    print("\n🔍 Test query: 'penalty for theft'")
+    logger.info("🔍 Test query: 'penalty for theft' (using embedding 0 as dummy query)")
     results = collection.query(
         query_embeddings=[embeddings[0].tolist()],
         n_results=5,
     )
     if results and results["documents"]:
-        for j, (doc, meta) in enumerate(zip(results["documents"][0], results["metadatas"][0])):
-            print(f"  {j+1}. [{meta['domain']}] {meta['section_number']} — {meta['act']}")
-            print(f"     {doc[:100]}...")
+        for j, (doc, meta, dist) in enumerate(zip(
+            results["documents"][0], 
+            results["metadatas"][0], 
+            results.get("distances", [[0]*5])[0]
+        )):
+            logger.info(f"  {j+1}. [{meta['domain']}] {meta['section_number']} — {meta['act']} (Distance: {dist:.4f})")
 
-    print(f"\n✅ ChromaDB build complete! ({count} entries)")
+    logger.info(f"✅ ChromaDB build complete! ({count} entries)")
 
 if __name__ == "__main__":
     main()
