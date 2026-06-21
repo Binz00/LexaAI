@@ -9,6 +9,10 @@ safetensors>=0.4.0
 # ── Vector Database ───────────────────────────────────────────────
 chromadb>=0.4.22
 
+# ── Hybrid Retrieval + Reranking ──────────────────────────────────
+rank-bm25>=0.2.2            # BM25 sparse retrieval
+sentence-transformers>=3.0.0 # Cross-encoder reranker
+
 # ── PDF Parsing ───────────────────────────────────────────────────
 PyMuPDF>=1.23.0
 

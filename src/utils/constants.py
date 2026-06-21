@@ -57,7 +57,29 @@ DISC_LR = 1e-4
 # ── ChromaDB Configuration ───────────────────────────────────────
 CHROMA_COLLECTION_STATUTES = "sri_lanka_statutes"
 CHROMA_COLLECTION_PRECEDENTS = "sri_lanka_precedents"
-RETRIEVAL_TOP_K = 8
+RETRIEVAL_TOP_K = 8           # Final number of sections returned to QA model
+
+# ── Hybrid Retrieval + Reranker Configuration ────────────────────
+# Dense vector retrieval (ChromaDB) — retrieves wider candidate pool before reranking
+DENSE_CANDIDATE_K = 20        # Number of dense candidates to retrieve before reranking
+
+# BM25 sparse retrieval — keyword-based exact match search
+BM25_CANDIDATE_K = 20         # Number of BM25 candidates to retrieve before reranking
+
+# Reciprocal Rank Fusion — merges dense + sparse ranked lists
+RRF_K = 60                    # RRF smoothing constant (standard is 60)
+
+# Cross-Encoder Reranker — scores (query, passage) pairs for precise relevance
+RERANKER_MODEL = "cross-encoder/ms-marco-MiniLM-L-6-v2"
+RERANKER_MAX_LENGTH = 512     # Max token length for cross-encoder input
+
+# ── Semantic Domain Classifier Configuration ─────────────────────
+# Fallback when keyword-based domain detection fires nothing.
+# Uses cosine similarity of the query embedding against domain prototype
+# vectors (mean of all section embeddings per domain).
+DOMAIN_CLASSIFIER_THRESHOLD = 0.85   # Min cosine similarity to include a domain
+DOMAIN_CLASSIFIER_MARGIN   = 0.02    # Include 2nd domain if within this margin of top
+
 
 # ── Evaluation Targets ───────────────────────────────────────────
 TARGET_PRECISION_AT_5 = 0.70
