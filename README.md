@@ -125,4 +125,3 @@ LexaAI/
 
 ---
 
-*LexAI Implementation v4.0 · Faculty of Computing · 2025/2026*
