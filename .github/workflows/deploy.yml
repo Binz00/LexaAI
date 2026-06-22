@@ -7,7 +7,7 @@ on:
 env:
   AWS_REGION: ap-south-1
   ECR_REPOSITORY: lexaai
-  ECR_REGISTRY: 284117358771.dkr.ecr.ap-south-1.amazonaws.com
+  ECR_REGISTRY: 284117358871.dkr.ecr.ap-south-1.amazonaws.com
 
 jobs:
   evaluate:
