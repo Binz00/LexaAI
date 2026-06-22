@@ -30,9 +30,9 @@ jobs:
       - name: Run evaluation
         id: eval
         run: |
-        python evaluation/eval_retrieval.py \
-    --mlflow-tracking-uri http://43.205.142.160:5000
-  echo "passed=true" >> $GITHUB_OUTPUT
+          python evaluation/eval_retrieval.py \
+            --mlflow-tracking-uri http://43.205.142.160:5000
+          echo "passed=true" >> $GITHUB_OUTPUT
 
   build-and-push:
     name: Build and Push to ECR
