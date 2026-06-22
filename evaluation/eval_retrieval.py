@@ -1,13 +1,4 @@
 #!/usr/bin/env python3
-"""
-LexaAI — Evaluation: Retrieval Precision
-==========================================
-Tests Precision@5 across 60 queries (10 per domain).
-Target: Precision@5 > 0.70
-
-Usage:
-    python evaluation/eval_retrieval.py
-"""
 import sys, os, random
 from pathlib import Path
 
@@ -16,14 +7,12 @@ sys.path.insert(0, str(PROJECT_ROOT))
 
 import mlflow
 
-# Detect CI environment — skip real imports if running in GitHub Actions
 CI_MODE = os.environ.get("GITHUB_ACTIONS") == "true"
 
 if not CI_MODE:
     from src.utils.constants import EVAL_RESULTS_DIR
     from src.rag_pipeline import LexaAIRetriever
 
-# Test queries with expected domains
 TEST_QUERIES = {
     "family_law": [
         {"q": "what age can a person legally marry in Sri Lanka", "domain": "family_law"},
@@ -88,29 +77,22 @@ TEST_QUERIES = {
 }
 
 def run_ci_evaluation():
-    """Simulated evaluation for CI — no model dependencies needed."""
     print("CI mode detected — running simulated evaluation.")
     precision_at_5 = round(random.uniform(0.74, 0.88), 4)
     mrr            = round(random.uniform(0.68, 0.84), 4)
     ndcg           = round(random.uniform(0.71, 0.87), 4)
     return precision_at_5, mrr, ndcg
 
-@mlflow.autolog()
 def run_real_evaluation():
-    mlflow.autolog()
-    """Real evaluation — runs locally or on EC2 where models are available."""
     retriever = LexaAIRetriever()
-
     total_queries = 0
     correct_at_5  = 0
-
     for domain, queries in TEST_QUERIES.items():
         for query in queries:
             total_queries += 1
             results = retriever.retrieve(query["q"], top_k=5)
             if any(r['domain'] == query['domain'] for r in results):
                 correct_at_5 += 1
-
     precision_at_5 = correct_at_5 / total_queries
     return precision_at_5, None, None
 
