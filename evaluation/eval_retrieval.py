@@ -5,11 +5,12 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-import mlflow
+
 
 CI_MODE = os.environ.get("GITHUB_ACTIONS") == "true"
 
 if not CI_MODE:
+    import mlflow
     from src.utils.constants import EVAL_RESULTS_DIR
     from src.rag_pipeline import LexaAIRetriever
 
