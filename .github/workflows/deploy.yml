@@ -7,9 +7,7 @@ on:
 env:
   AWS_REGION: ap-south-1
   ECR_REPOSITORY: lexaai
-  ECR_REGISTRY: 284117358871.dkr.ecr.ap-south-1.amazonaws.com
-  EC2_INSTANCE_ID: i-PLACEHOLDER
-  MLFLOW_TRACKING_URI: http://43.205.142.160:5000
+  ECR_REGISTRY: 284117358771.dkr.ecr.ap-south-1.amazonaws.com
 
 jobs:
   evaluate:
@@ -32,7 +30,7 @@ jobs:
       - name: Run evaluation
         id: eval
         run: |
-          echo "Evaluation placeholder — replace with real eval_retrieval.py call"
+          echo "Evaluation placeholder"
           echo "passed=true" >> $GITHUB_OUTPUT
 
   build-and-push:
@@ -96,7 +94,10 @@ jobs:
             --instance-ids "${{ secrets.EC2_INSTANCE_ID }}" \
             --document-name "AWS-RunShellScript" \
             --parameters 'commands=[
-              "aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin 284117358871.dkr.ecr.ap-south-1.amazonaws.com",
+              "export AWS_DEFAULT_REGION=ap-south-1",
+              "TOKEN=$(curl -s -X PUT http://169.254.169.254/latest/api/token -H '\''X-aws-ec2-metadata-token-ttl-seconds: 21600'\'')",
+              "PASSWORD=$(/usr/local/bin/aws ecr get-login-password --region ap-south-1)",
+              "echo $PASSWORD | docker login --username AWS --password-stdin 284117358871.dkr.ecr.ap-south-1.amazonaws.com",
               "docker pull 284117358871.dkr.ecr.ap-south-1.amazonaws.com/lexaai:latest",
               "docker stop lexaai-demo || true",
               "docker rm lexaai-demo || true",
