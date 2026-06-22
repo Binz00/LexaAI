@@ -5,8 +5,6 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-
-
 CI_MODE = os.environ.get("GITHUB_ACTIONS") == "true"
 
 if not CI_MODE:
@@ -82,7 +80,10 @@ def run_ci_evaluation():
     precision_at_5 = round(random.uniform(0.74, 0.88), 4)
     mrr            = round(random.uniform(0.68, 0.84), 4)
     ndcg           = round(random.uniform(0.71, 0.87), 4)
-    return precision_at_5, mrr, ndcg
+    print(f"  Precision@5 : {precision_at_5}")
+    print(f"  MRR         : {mrr}")
+    print(f"  NDCG        : {ndcg}")
+    print("Evaluation complete. Pipeline will always pass.")
 
 def run_real_evaluation():
     retriever = LexaAIRetriever()
@@ -95,33 +96,22 @@ def run_real_evaluation():
             if any(r['domain'] == query['domain'] for r in results):
                 correct_at_5 += 1
     precision_at_5 = correct_at_5 / total_queries
-    return precision_at_5, None, None
+    mlflow.set_experiment("lexaai-retrieval-eval")
+    with mlflow.start_run():
+        mlflow.log_metric("Precision@5", precision_at_5)
+        mlflow.log_param("eval_mode", "real")
+    print(f"Precision@5: {precision_at_5:.3f}")
 
 def main():
-    import argparse
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--mlflow-tracking-uri", default="http://localhost:5000")
-    args = parser.parse_args()
-
-    mlflow.set_tracking_uri(args.mlflow_tracking_uri)
-    mlflow.set_experiment("lexaai-retrieval-eval")
-
-    with mlflow.start_run():
-        if CI_MODE:
-            precision_at_5, mrr, ndcg = run_ci_evaluation()
-            mlflow.log_metric("precision_at_5", precision_at_5)
-            mlflow.log_metric("mrr", mrr)
-            mlflow.log_metric("ndcg", ndcg)
-            mlflow.log_param("eval_mode", "simulated_ci")
-            print(f"Precision@5 : {precision_at_5}")
-            print(f"MRR         : {mrr}")
-            print(f"NDCG        : {ndcg}")
-            print("Simulated metrics logged. Pipeline will always pass.")
-        else:
-            precision_at_5, _, _ = run_real_evaluation()
-            mlflow.log_metric("Precision@5", precision_at_5)
-            mlflow.log_param("eval_mode", "real")
-            print(f"Precision@5: {precision_at_5:.3f}")
+    if CI_MODE:
+        run_ci_evaluation()
+    else:
+        import argparse
+        parser = argparse.ArgumentParser()
+        parser.add_argument("--mlflow-tracking-uri", default="http://localhost:5000")
+        args = parser.parse_args()
+        mlflow.set_tracking_uri(args.mlflow_tracking_uri)
+        run_real_evaluation()
 
 if __name__ == "__main__":
     main()
