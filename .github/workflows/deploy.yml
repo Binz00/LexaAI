@@ -95,13 +95,12 @@ jobs:
             --document-name "AWS-RunShellScript" \
             --parameters 'commands=[
               "export AWS_DEFAULT_REGION=ap-south-1",
-              "TOKEN=$(curl -s -X PUT http://169.254.169.254/latest/api/token -H '\''X-aws-ec2-metadata-token-ttl-seconds: 21600'\'')",
               "PASSWORD=$(/usr/local/bin/aws ecr get-login-password --region ap-south-1)",
               "echo $PASSWORD | docker login --username AWS --password-stdin 284117358871.dkr.ecr.ap-south-1.amazonaws.com",
-              "docker pull 284117358871.dkr.ecr.ap-south-1.amazonaws.com/lexaai:latest",
+              "docker pull 284117358871.dkr.ecr.ap-south-1.amazonaws.com/lexaai:${{ github.sha }}",
               "docker stop lexaai-demo || true",
               "docker rm lexaai-demo || true",
-              "docker run -d --name lexaai-demo -p 8501:8501 --restart unless-stopped --memory=3g --memory-swap=5g 284117358871.dkr.ecr.ap-south-1.amazonaws.com/lexaai:latest",
+              "docker run -d --name lexaai-demo -p 8501:8501 --restart unless-stopped --memory=3g --memory-swap=5g 284117358871.dkr.ecr.ap-south-1.amazonaws.com/lexaai:${{ github.sha }}",
               "docker image prune -f"
             ]' \
             --region ap-south-1
