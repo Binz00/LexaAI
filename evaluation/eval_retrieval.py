@@ -97,6 +97,7 @@ def run_ci_evaluation():
 
 @mlflow.autolog()
 def run_real_evaluation():
+    mlflow.autolog()
     """Real evaluation — runs locally or on EC2 where models are available."""
     retriever = LexaAIRetriever()
 
