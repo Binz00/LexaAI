@@ -98,9 +98,12 @@ jobs:
               "PASSWORD=$(/usr/local/bin/aws ecr get-login-password --region ap-south-1)",
               "echo $PASSWORD | docker login --username AWS --password-stdin 284117358871.dkr.ecr.ap-south-1.amazonaws.com",
               "docker pull 284117358871.dkr.ecr.ap-south-1.amazonaws.com/lexaai:${{ github.sha }}",
+              "docker run -d --name lexaai-new -p 8502:8501 --restart unless-stopped --memory=3g --memory-swap=5g 284117358871.dkr.ecr.ap-south-1.amazonaws.com/lexaai:${{ github.sha }}",
+              "echo Waiting for new container to be healthy...",
+              "for i in $(seq 1 12); do sleep 10; STATUS=$(docker inspect --format={{.State.Health.Status}} lexaai-new 2>/dev/null || echo starting); echo Health check $i: $STATUS; if [ \"$STATUS\" = \"healthy\" ]; then break; fi; done",
               "docker stop lexaai-demo || true",
               "docker rm lexaai-demo || true",
-              "docker run -d --name lexaai-demo -p 8501:8501 --restart unless-stopped --memory=3g --memory-swap=5g 284117358871.dkr.ecr.ap-south-1.amazonaws.com/lexaai:${{ github.sha }}",
+              "docker rename lexaai-new lexaai-demo",
               "docker image prune -f"
             ]' \
             --region ap-south-1
