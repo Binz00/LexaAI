@@ -1,0 +1,106 @@
+name: LexaAI CI/CD Pipeline
+
+on:
+  push:
+    branches: [develop, main]
+
+env:
+  AWS_REGION: ap-south-1
+  ECR_REPOSITORY: lexaai
+  ECR_REGISTRY: 284117358871.dkr.ecr.ap-south-1.amazonaws.com
+  EC2_INSTANCE_ID: i-PLACEHOLDER
+  MLFLOW_TRACKING_URI: http://43.205.142.160:5000
+
+jobs:
+  evaluate:
+    name: Evaluate Retrieval Quality
+    runs-on: ubuntu-latest
+    outputs:
+      evaluation_passed: ${{ steps.eval.outputs.passed }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install evaluation dependencies
+        run: pip install mlflow rank-bm25 numpy
+
+      - name: Run evaluation
+        id: eval
+        run: |
+          echo "Evaluation placeholder — replace with real eval_retrieval.py call"
+          echo "passed=true" >> $GITHUB_OUTPUT
+
+  build-and-push:
+    name: Build and Push to ECR
+    runs-on: ubuntu-latest
+    needs: evaluate
+    if: needs.evaluate.outputs.evaluation_passed == 'true'
+    permissions:
+      id-token: write
+      contents: read
+    outputs:
+      image: ${{ steps.build.outputs.image }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials via OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Download model artifacts from S3
+        run: |
+          mkdir -p models data/sections embeddings
+          aws s3 cp s3://lexaai-models-binura/stage2_lexai/ models/stage2_lexai/ --recursive
+          aws s3 cp s3://lexaai-models-binura/sections/ data/sections/ --recursive
+          aws s3 cp s3://lexaai-models-binura/chromadb/ embeddings/chromadb/ --recursive
+
+      - name: Build and push Docker image
+        id: build
+        run: |
+          IMAGE=${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
+          docker build -t $IMAGE .
+          docker push $IMAGE
+          docker tag $IMAGE ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest
+          docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest
+          echo "image=$IMAGE" >> $GITHUB_OUTPUT
+
+  deploy:
+    name: Deploy to EC2 via SSM
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Configure AWS credentials via OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Deploy via SSM
+        run: |
+          aws ssm send-command \
+            --instance-ids "${{ secrets.EC2_INSTANCE_ID }}" \
+            --document-name "AWS-RunShellScript" \
+            --parameters 'commands=[
+              "aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin 284117358871.dkr.ecr.ap-south-1.amazonaws.com",
+              "docker pull 284117358871.dkr.ecr.ap-south-1.amazonaws.com/lexaai:latest",
+              "docker stop lexaai-demo || true",
+              "docker rm lexaai-demo || true",
+              "docker run -d --name lexaai-demo -p 8501:8501 --restart unless-stopped --memory=3g --memory-swap=5g 284117358871.dkr.ecr.ap-south-1.amazonaws.com/lexaai:latest",
+              "docker image prune -f"
+            ]' \
+            --region ap-south-1
