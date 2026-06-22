@@ -1,0 +1,17 @@
+.git
+.gitignore
+venv/
+__pycache__/
+*.pyc
+.env
+AWSCLIV2.pkg
+models/autoencoder.pt
+models/discriminator/
+models/stage1_cuad/
+data/raw_pdfs/
+data/cuad/
+data/synthetic_qa/
+data/sections/latent_embeddings.npy.bak
+evaluation/
+logs/
+*.md
